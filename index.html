@@ -8334,6 +8334,10 @@ function writePref(key, value) {
 }
 const SKIN_KEYS = ['cyber', 'aurora', 'verdant'];
 const LANG_KEYS = ['한국어', 'English', '繁體中文', 'ไทย'];
+/* languages kept in the build but hidden from the picker; empty this array to show them again */
+const LANG_HIDDEN = ['繁體中文'];
+const LANG_VISIBLE = LANG_KEYS.filter((k) => LANG_HIDDEN.indexOf(k) < 0);
+const LANG_DEFAULT = 'English';
 
 const DP_L10N = {
   '繁體中文': { presets: ['今天', '昨天', '最近7天', '最近14天', '最近30天', '本月', '上月'],
@@ -8720,7 +8724,7 @@ class Component extends DCLogic {
       paysetTab: 'dep', depEdit: false, wdEdit: false,
       navCollapsed: false, openGroups: [],
       skin: readPref('skin', 'cyber', SKIN_KEYS),
-      hdrOpen: '', hdrLang: '繁體中文', hdrTz: 'GMT+8', hdrQuery: '',
+      hdrOpen: '', hdrLang: LANG_DEFAULT, hdrTz: 'GMT+8', hdrQuery: '',
       hdrAlerts: [
         { title: '有 3 筆提款待審核', at: '2026-09-30 09:41' },
         { title: '供應商 PGS 連線恢復', at: '2026-09-30 08:12' },
@@ -10774,7 +10778,7 @@ class Component extends DCLogic {
       skinName: (SKINS.find((x) => x.key === st.skin) || SKINS[0]).label.split(' ')[0],
       hdrSkinOpen: st.hdrOpen === 'skin',
       toggleHdrSkin: () => this.setState({ hdrOpen: st.hdrOpen === 'skin' ? '' : 'skin' }),
-      hdrLangs: ['한국어', 'English', '繁體中文', 'ไทย'].map((label) => ({
+      hdrLangs: LANG_VISIBLE.map((label) => ({
         label, style: menuItem(st.hdrLang === label),
         onClick: () => { this.applyI18n(label); this.setState({ hdrLang: label, hdrOpen: '' }); this.showToast('已切換語言：' + label); },
       })),
