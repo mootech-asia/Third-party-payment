@@ -5504,7 +5504,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
                 <div class="ref-grid-x" style="overflow-x:auto">
                   <div style="{{ ref.grid.style }}">
                     <sc-for list="{{ ref.grid.head }}" as="hc" hint-placeholder-count="6">
-                      <div onclick="{{ hc.onClick }}" style="{{ hc.style }}">{{ hc.label }}<sc-if value="{{ hc.req }}" hint-placeholder-val="{{ false }}"><span style="color:var(--bad);margin-left:4px">*</span></sc-if></div>
+                      <div onclick="{{ hc.onClick }}" style="{{ hc.style }}"><span>{{ hc.label }}<sc-if value="{{ hc.req }}" hint-placeholder-val="{{ false }}"><span style="color:var(--bad);margin-left:4px">*</span></sc-if></span></div>
                     </sc-for>
                     <sc-for list="{{ ref.grid.rows }}" as="r" hint-placeholder-count="2">
                       <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="6">
