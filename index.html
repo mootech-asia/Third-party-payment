@@ -11176,7 +11176,7 @@ class Component extends DCLogic {
     // 用戶名 on the reward tabs matches inviter or invitee; 受邀人 on the commission tabs matches the invitee
     const logIsClaim = st.refLogTab === 'invite' || st.refLogTab === 'achieve';
     const refLogFiltered = (st.refLogs[st.refLogTab] || []).filter((r) =>
-      inRange(logByDate ? r.date : r.at) && lowerHas(logIsClaim ? r.user + ' ' + r.invitee : r.invitee, lf.user) &&
+      inRange(logByDate ? r.date : r.at) && ((logIsClaim && lowerHas(r.user, lf.user)) || lowerHas(r.invitee, lf.user)) &&
       lowerHas(r.agent || '', lf.agent) && lowerHas(r.account || '', lf.bettor) &&
       (!lf.gtype || lf.gtype === '全部' || r.gtype === lf.gtype));
     const refLogDef = refLogDefs[st.refLogTab];
@@ -11632,7 +11632,7 @@ class Component extends DCLogic {
         : st.promoTab === 'ref' ? [['ref:set', '推薦返傭設置'], ['ref:inv', '邀請人獎勵設置'], ['ref:log', '返傭發放紀錄'], ['ref:ana', '返傭貢獻分析']]
         : [['event', '活動促銷']]).map(([k, label]) => ({
         label, style: tabStyle(k.indexOf('ref:') === 0 ? st.refTab === k.slice(4) : st.promoTab === k),
-        onClick: () => this.setState(k.indexOf('ref:') === 0 ? { refTab: k.slice(4) } : { promoTab: k }),
+        onClick: () => (k.indexOf('ref:') === 0 ? refView({ refTab: k.slice(4) }) : this.setState({ promoTab: k })),
       })),
       promoBannerListTab: st.promoTab === 'bannerList',
       promoBannerTypeTab: st.promoTab === 'bannerType',
