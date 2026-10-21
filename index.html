@@ -10857,10 +10857,10 @@ class Component extends DCLogic {
       transition: 'color .15s',
     });
     const collapsed = st.navCollapsed;
-    const subNavStyle = (active, nested) => ({
-      height: nested ? '34px' : '38px', display: 'flex', alignItems: 'center',
-      paddingLeft: (nested ? 70 : 54) - (active ? 2 : 0) + 'px', margin: '1px 12px',
-      fontSize: nested ? '13px' : '14px', cursor: 'pointer',
+    const subNavStyle = (active) => ({
+      height: '38px', display: 'flex', alignItems: 'center',
+      paddingLeft: active ? '52px' : '54px', margin: '1px 12px',
+      fontSize: '14px', cursor: 'pointer',
       background: active ? 'linear-gradient(90deg,rgba(var(--acc1-rgb),.14),rgba(var(--acc1-rgb),.02))' : 'transparent',
       color: active ? 'var(--acc1)' : 'var(--tx6)',
       fontWeight: active ? 700 : 400,
@@ -10884,7 +10884,7 @@ class Component extends DCLogic {
         ['slot', '老虎機/釣魚'], ['sport', '體育'], ['pvp', 'PVP'], ['mini', '小遊戲']] },
       排行榜: { screen: 'rank', tabKey: 'rankTab', subs: [['vip', 'VIP 等級設置'], ['list', 'VIP 等級列表'], ['hist', '等級歷史']] },
       促銷管理: { screen: 'promo', tabKey: 'promoTab', subs: [['bannerList', '促銷橫幅管理'], ['deposit', '存款促銷'],
-        ['bet', '投注促銷'], ['event', '活動促銷'], ['checkin', '登入簽到', true], ['ref', '推薦系統']] },
+        ['bet', '投注促銷'], ['event', '活動促銷'], ['checkin', '登入簽到'], ['ref', '推薦系統']] },
       公告管理: { screen: 'notice', tabKey: 'noticeTab', subs: [['banner', '公告']] },
       報告: { screen: 'report', tabKey: 'reportTab', subs: [['kpi', '所有盈虧 KPI'], ['active', '活躍會員'],
         ['venue', '遊戲場所市場分析'], ['venuePerf', '遊戲場所表現'], ['player', '玩家分析'],
@@ -10900,9 +10900,9 @@ class Component extends DCLogic {
         open: !st.navCollapsed && st.openGroups.includes(n.label),
         hasSubs: !!mod,
         noSubs: !mod,
-        subs: mod ? mod.subs.map(([k, label, nested]) => ({
+        subs: mod ? mod.subs.map(([k, label]) => ({
           label,
-          style: subNavStyle(st.screen === mod.screen && st[mod.tabKey] === k, nested),
+          style: subNavStyle(st.screen === mod.screen && st[mod.tabKey] === k),
           onClick: () => { this.goto(mod.screen, n.label); this.setState({ [mod.tabKey]: k }); },
         })) : [],
         style: navGroupStyle(!!mod && st.screen === mod.screen),
@@ -11878,7 +11878,8 @@ class Component extends DCLogic {
         : st.promoTab === 'deposit' ? [['deposit', '存款促銷']]
         : st.promoTab === 'bet' ? [['bet', '玩家投注返利']]
         : st.promoTab === 'ref' ? [['ref:set', '推薦返傭設置'], ['ref:inv', '邀請人獎勵設置'], ['ref:log', '返傭發放紀錄'], ['ref:ana', '返傭貢獻分析']]
-        : [['event', '活動促銷'], ['checkin', '登入簽到']]).map(([k, label]) => ({
+        : st.promoTab === 'checkin' ? [['checkin', '登入簽到']]
+        : [['event', '活動促銷']]).map(([k, label]) => ({
         label, style: tabStyle(k.indexOf('ref:') === 0 ? st.refTab === k.slice(4) : st.promoTab === k),
         onClick: () => (k.indexOf('ref:') === 0 ? refView({ refTab: k.slice(4) }) : this.setState({ promoTab: k })),
       })),
