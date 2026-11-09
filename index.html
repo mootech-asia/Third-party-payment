@@ -3591,6 +3591,43 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 @keyframes dashHalo{0%{transform:scale(.55);opacity:.85}100%{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){.dash-anim{animation:none!important}.dash-deco{display:none}}
 
+/* ============ UI craft — 介面打磨層（依 cms_system ui-craft 規範；只用既有 token） ============ */
+/* decorative "// LABEL" tags read as fake code comments; Aurora/Verdant already hid them */
+.sk-mono{display:none!important}
+/* numbers line up in tables, KPI cards and counters */
+.rwd-root{font-variant-numeric:tabular-nums}
+/* tables: header on its own lighter surface (Cyber; Aurora/Verdant keep their transparent header),
+   row hover with an accent rail on the first cell */
+:root:not([data-skin]) .sk-thead>div{background:var(--pan5)!important}
+.sk-tbody>div>div{transition:background-color .15s ease-out,box-shadow .15s ease-out}
+.sk-tbody>div:hover>div{background-color:rgba(var(--acc1-rgb),.05)}
+.sk-tbody>div:hover>div:first-child{box-shadow:inset 2px 0 0 var(--acc1)}
+/* controls: hover / press feedback (press 0.97, never below 0.95) */
+.sk-btn{transition:filter .16s ease-out,transform .12s ease-out,box-shadow .16s ease-out}
+.sk-btn:hover{filter:brightness(1.08)}
+.sk-btn:active,.rwd-root [style*="cursor: pointer"][style*="height: 34px"]:active,.rwd-root [style*="cursor: pointer"][style*="height: 36px"]:active,.rwd-root [style*="cursor: pointer"][style*="height: 28px"]:active{transform:scale(.97)}
+.rwd-root [style*="cursor: pointer"][style*="height: 34px"],.rwd-root [style*="cursor: pointer"][style*="height: 36px"],.rwd-root [style*="cursor: pointer"][style*="height: 28px"]{transition:background-color .15s ease-out,border-color .15s ease-out,color .15s ease-out,transform .12s ease-out}
+/* fields: a hover state between default and focus (error borders keep their colour) */
+.rwd-root input:not([disabled]):not([readonly]):hover:not(:focus):not([style*="--bad"]),.rwd-root select:not([disabled]):hover:not(:focus):not([style*="--bad"]),.rwd-root textarea:not([disabled]):hover:not(:focus){border-color:var(--bd3)!important}
+.rwd-root input,.rwd-root select,.rwd-root textarea{transition:border-color .15s ease-out,box-shadow .15s ease-out}
+/* motion: header menus grow from their trigger, dialogs rise in, both under 300ms with a custom ease-out */
+@keyframes uiPop{from{opacity:0;transform:translateY(-4px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes uiFade{from{opacity:0}to{opacity:1}}
+@keyframes uiRise{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.rwd-header [style*="top: calc(100% + 8px)"]{transform-origin:top right;animation:uiPop .18s cubic-bezier(.23,1,.32,1) both}
+.rwd-root>[style*="position: fixed; inset: 0px"][style*="backdrop-filter"]{animation:uiFade .2s ease-out both}
+.rwd-root>[style*="position: fixed; inset: 0px"][style*="backdrop-filter"] .sk-dialog{animation:uiRise .24s cubic-bezier(.23,1,.32,1) both}
+@media (prefers-reduced-motion:reduce){
+  .rwd-header [style*="top: calc(100% + 8px)"],.rwd-root>[style*="position: fixed; inset: 0px"] .sk-dialog{animation:uiFade .15s linear both}
+  .sk-btn:active,.rwd-root [style*="cursor: pointer"]:active{transform:none!important}
+}
+/* scrollbars: thin and on-palette instead of the browser default */
+.rwd-root,.rwd-root *{scrollbar-width:thin;scrollbar-color:var(--bd2) transparent}
+.rwd-root ::-webkit-scrollbar{width:10px;height:10px}
+.rwd-root ::-webkit-scrollbar-track{background:transparent}
+.rwd-root ::-webkit-scrollbar-thumb{background:var(--bd2);border:3px solid transparent;background-clip:content-box;border-radius:999px}
+.rwd-root ::-webkit-scrollbar-thumb:hover{background-color:var(--bd3)}
+
 /* ============ RWD — 響應式版面 ============
    The markup carries inline styles (serialized by the runtime as "prop: value;"), so these overrides
    match on those strings and need !important.
