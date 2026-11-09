@@ -3583,6 +3583,14 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 .tier-opt-wd:hover{background:var(--hov);color:var(--acc2-lt)!important}
 .dash-tip{opacity:0;transition:opacity .12s ease}
 .dash-band:hover .dash-tip{opacity:1}
+/* dashboard trend chart motion: draw-in on load / switch, packets flowing, halo pulse at the latest point */
+@keyframes dashRevealA{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes dashRevealB{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes dashFadeA{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes dashFadeB{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes dashFlow{to{stroke-dashoffset:-50}}
+@keyframes dashHalo{0%{transform:scale(.55);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+@media (prefers-reduced-motion:reduce){.dash-anim{animation:none!important}.dash-deco{display:none}}
 
 /* ============ RWD — 響應式版面 ============
    The markup carries inline styles (serialized by the runtime as "prop: value;"), so these overrides
@@ -3637,6 +3645,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
   .rwd-wrap > [style*="max-width: 460px"]{flex:1 1 100%!important;max-width:none!important}
   .rwd-wrap > [style*="min-width: 280px"]{flex:1 1 0;min-width:0!important}
   .rwd-root [style*="height: 34px; padding: 0px 2"]{white-space:nowrap;flex-shrink:0}
+  .rwd-root [style*="height: 28px; padding: 0px 14px"]{padding:0 9px!important}
   .rwd-root [style*="position: relative; width: 280px"]{width:100%!important;flex:1 1 100%}
   .rwd-split{flex-direction:column!important;align-items:stretch!important;gap:14px!important}
   .rwd-side{width:auto!important;flex-direction:row!important;overflow-x:auto;padding:6px 0!important;scrollbar-width:none}
@@ -7088,22 +7097,30 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
                 <sc-for list="{{ dashGrid }}" as="g" hint-placeholder-count="5">
                   <line x1="0" y1="{{ g.y }}" x2="1000" y2="{{ g.y }}" style="stroke:var(--div);stroke-width:1;vector-effect:non-scaling-stroke"></line>
                 </sc-for>
+              </svg>
+              <svg class="dash-anim" viewBox="0 0 1000 276" preserveAspectRatio="none" style="{{ dashLinesSvg }}">
                 <sc-for list="{{ dashLines }}" as="ln" hint-placeholder-count="3">
+                  <polyline points="{{ ln.points }}" style="{{ ln.glowStyle }}"></polyline>
                   <polyline points="{{ ln.points }}" style="{{ ln.lineStyle }}"></polyline>
+                  <polyline class="dash-anim dash-deco" points="{{ ln.points }}" style="{{ ln.flowStyle }}"></polyline>
                 </sc-for>
               </svg>
+              <sc-for list="{{ dashTravel }}" as="tv" hint-placeholder-count="3">
+                <span class="dash-anim dash-deco" style="{{ tv.style }}"></span>
+              </sc-for>
               <sc-for list="{{ dashEnds }}" as="ed" hint-placeholder-count="3">
-                <span style="{{ ed.dotStyle }}"></span>
-                <span style="{{ ed.labelStyle }}">{{ ed.label }}</span>
+                <span class="dash-anim dash-deco" style="{{ ed.ringStyle }}"></span>
+                <span class="dash-anim" style="{{ ed.dotStyle }}"></span>
+                <span class="dash-anim" style="{{ ed.labelStyle }}">{{ ed.label }}</span>
               </sc-for>
               <sc-for list="{{ dashBands }}" as="b" hint-placeholder-count="7">
                 <div class="dash-band" style="{{ b.bandStyle }}">
                   <div class="dash-tip" style="{{ b.crossStyle }}"></div>
                   <div class="dash-tip" style="{{ b.tipStyle }}">
                     <span style="font-size:13px;font-weight:700;color:var(--tx);font-family:'Share Tech Mono',monospace">{{ b.date }}</span>
-                    <span style="font-size:12px;color:var(--acc2-lt);font-family:'Share Tech Mono',monospace">{{ b.r1 }}</span>
-                    <span style="font-size:12px;color:var(--warn);font-family:'Share Tech Mono',monospace">{{ b.r2 }}</span>
-                    <span style="font-size:12px;color:var(--acc1);font-family:'Share Tech Mono',monospace">{{ b.r3 }}</span>
+                    <sc-for list="{{ b.rows }}" as="br" hint-placeholder-count="3">
+                      <span style="{{ br.style }}">{{ br.text }}</span>
+                    </sc-for>
                   </div>
                 </div>
               </sc-for>
@@ -9308,7 +9325,7 @@ class Component extends DCLogic {
     this.allTiers = ['VC-1', 'test', 'RC', 'TB', 'USDT', 'SPC', '88', 'SC'];
     this.state = {
       view: 'list', mode: 'create', step: 1, tab: 'pay', product: 'A', screen: 'dash',
-      dashMetric: '激活', dashRange: '7天',
+      dashMetric: '激活', dashRange: '7天', dashAnim: 0,
       platTab: 'user', platSetTab: 'basic', vendorTab: 'vendor', betNav: 'bet', betCat: '捕魚',
       paysetTab: 'dep', depEdit: false, wdEdit: false,
       navCollapsed: false, openGroups: [], mobileNav: false,
@@ -9695,6 +9712,16 @@ class Component extends DCLogic {
     }));
   }
 
+  // A glowing dot travels each trend line; its path depends on the data, so the keyframes are generated.
+  syncDashTravel(key, series) {
+    if (typeof document === 'undefined' || this._dashTravelKey === key) return;
+    this._dashTravelKey = key;
+    let el = document.getElementById('dash-travel-kf');
+    if (!el) { el = document.createElement('style'); el.id = 'dash-travel-kf'; document.head.appendChild(el); }
+    el.textContent = series.map((pts, si) => '@keyframes dashTravel' + si + '{' + pts.map(([x, y], i) =>
+      (i / (pts.length - 1) * 100).toFixed(2) + '%{left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;opacity:' + (i === 0 || i === pts.length - 1 ? 0 : 1) + '}').join('') + '}').join('\n');
+  }
+
   // Below the tablet breakpoint the sidebar is an off-canvas drawer; CSS keys off this root attribute.
   setMobileNav(open) {
     if (typeof document !== 'undefined') document.documentElement.toggleAttribute('data-nav-open', open);
@@ -9849,18 +9876,41 @@ class Component extends DCLogic {
     const pl = st.players[st.plIndex] || st.players[0];
     const plTierRow = st.tiersAuto.concat(st.tiersManual).find((r) => r.name === pl.tier) || { name: pl.tier, wdCount: '—', wdAmount: '—' };
 
-    const DASH_DATES = ['09-24', '09-25', '09-26', '09-27', '09-28', '09-29', '09-30'];
-    const DASH_SERIES = [
-      { key: '存款', color: 'var(--ch1)', hex: 'var(--ch1)', data: [64, 52, 58, 83, 77, 102, 91] },
-      { key: '投注', color: 'var(--ch2)', hex: 'var(--ch2)', data: [41, 33, 38, 55, 49, 71, 62] },
-      { key: '登錄', color: 'var(--ch3)', hex: 'var(--ch3)', data: [128, 96, 104, 152, 141, 188, 163] },
-    ];
-    const CH_MAX = 200;
+    // ---- dashboard trend chart: data follows the metric select and the 7/14/30-day range ----
+    const DASH_TABLE_DATES = ['09-24', '09-25', '09-26', '09-27', '09-28', '09-29', '09-30'];
+    const DASH_TABLE_DATA = { dep: [64, 52, 58, 83, 77, 102, 91], bet: [41, 33, 38, 55, 49, 71, 62], login: [128, 96, 104, 152, 141, 188, 163] };
+    const dashDays = parseInt(st.dashRange, 10) || 7;
+    const dashIsCash = st.dashMetric === '存款/提款';
+    const dashSpecs = dashIsCash
+      ? [{ key: '存款', color: 'var(--ch1)', base: 420, amp: 0.22, seed: 11 }, { key: '提款', color: 'var(--ch2)', base: 310, amp: 0.26, seed: 23 }]
+      : [{ key: '存款', color: 'var(--ch1)', base: 70, amp: 0.25, seed: 3, last7: DASH_TABLE_DATA.dep },
+        { key: '投注', color: 'var(--ch2)', base: 48, amp: 0.28, seed: 5, last7: DASH_TABLE_DATA.bet },
+        { key: '登錄', color: 'var(--ch3)', base: 140, amp: 0.2, seed: 7, last7: DASH_TABLE_DATA.login }];
+    const DASH_END = new Date(2026, 8, 30);
+    const pad2 = (n) => (n < 10 ? '0' : '') + n;
+    const DASH_DATES = Array.from({ length: dashDays }, (_, i) => {
+      const d = new Date(DASH_END.getTime() - (dashDays - 1 - i) * 86400000);
+      return pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    });
+    const dashNoise = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
+    const DASH_SERIES = dashSpecs.map((sp) => ({
+      key: sp.key, color: sp.color,
+      data: DASH_DATES.map((_, i) => {
+        const back = dashDays - 1 - i; // days before 09-30
+        if (sp.last7 && back < 7) return sp.last7[6 - back];
+        const wave = Math.sin((i + sp.seed) * 0.85) * 0.6 + Math.sin((i + sp.seed) * 0.31) * 0.4;
+        return Math.max(0, Math.round(sp.base * (1 + sp.amp * wave + (dashNoise(i * 7 + sp.seed) - 0.5) * 0.18)));
+      }),
+    }));
+    const dashPeak = Math.max(...DASH_SERIES.map((sr) => Math.max(...sr.data)));
+    const dashStep = [10, 20, 25, 40, 50, 60, 75, 100, 125, 150, 200, 250, 300, 400, 500].find((v) => v * 4 >= dashPeak * 1.02) || Math.ceil(dashPeak / 400) * 100;
+    const CH_MAX = dashStep * 4;
     const N = DASH_DATES.length;
     const pctX = (i) => (i / (N - 1)) * 100;
     const pctY = (v) => (1 - v / CH_MAX) * 100;
-    const dashGrid = [0, 50, 100, 150, 200].map((v) => ({ y: String((pctY(v) / 100 * 276).toFixed(1)) }));
-    const dashYTicks = [0, 50, 100, 150, 200].map((v) => ({
+    const dashTickVals = [0, 1, 2, 3, 4].map((k) => k * dashStep);
+    const dashGrid = dashTickVals.map((v) => ({ y: String((pctY(v) / 100 * 276).toFixed(1)) }));
+    const dashYTicks = dashTickVals.map((v) => ({
       label: String(v),
       style: {
         position: 'absolute', left: 0, width: '40px', textAlign: 'right',
@@ -9868,7 +9918,9 @@ class Component extends DCLogic {
         fontSize: '12px', color: 'var(--tx4)', fontFamily: "'Share Tech Mono',monospace",
       },
     }));
-    const dashXTicks = DASH_DATES.map((d, i) => ({
+    // label every day for 7 days, every 2nd / 5th day (counted back from the last) for 14 / 30
+    const dashTickEvery = N <= 7 ? 1 : N <= 14 ? 2 : 5;
+    const dashXTicks = DASH_DATES.map((d, i) => ({ d, i })).filter(({ i }) => (N - 1 - i) % dashTickEvery === 0).map(({ d, i }) => ({
       label: d,
       style: {
         position: 'absolute', bottom: '6px', left: 'calc(52px + (100% - 52px) * ' + (pctX(i) / 100).toFixed(4) + ')',
@@ -9876,23 +9928,50 @@ class Component extends DCLogic {
         fontSize: '12px', color: 'var(--tx4)', fontFamily: "'Share Tech Mono',monospace",
       },
     }));
-    const dashLines = DASH_SERIES.map((sr) => ({
-      points: sr.data.map((v, i) => (pctX(i) / 100 * 1000).toFixed(1) + ',' + (pctY(v) / 100 * 276).toFixed(1)).join(' '),
-      lineStyle: { fill: 'none', stroke: sr.color, strokeWidth: 2, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
+    // motion: every metric/range switch bumps dashAnim; alternating between two identical keyframe
+    // names restarts the draw-in animation without re-creating the elements
+    const dashAB = (st.dashAnim || 0) % 2 ? 'B' : 'A';
+    const dashKfKey = st.dashMetric + '|' + st.dashRange;
+    this.syncDashTravel(dashKfKey, DASH_SERIES.map((sr) => sr.data.map((v, i) => [pctX(i), pctY(v)])));
+    const dashLinesSvg = { position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', overflow: 'visible',
+      animation: 'dashReveal' + dashAB + ' 1.2s cubic-bezier(.2,.8,.2,1) both' };
+    const dashLines = DASH_SERIES.map((sr, si) => {
+      const points = sr.data.map((v, i) => (pctX(i) / 100 * 1000).toFixed(1) + ',' + (pctY(v) / 100 * 276).toFixed(1)).join(' ');
+      return {
+        points,
+        glowStyle: { fill: 'none', stroke: sr.color, strokeWidth: 6, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke', opacity: 0.14 },
+        lineStyle: { fill: 'none', stroke: sr.color, strokeWidth: 2, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
+        // short bright dashes marching along the line, like packets on a link
+        flowStyle: { fill: 'none', stroke: '#fff', strokeWidth: 2, strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke',
+          strokeDasharray: '3 22', opacity: 0.55, animation: 'dashFlow ' + (1.4 + si * 0.25).toFixed(2) + 's linear infinite' },
+      };
+    });
+    const dashTravel = DASH_SERIES.map((sr, si) => ({
+      style: {
+        position: 'absolute', width: '7px', height: '7px', margin: '-3.5px 0 0 -3.5px', borderRadius: '50%',
+        background: '#fff', boxShadow: '0 0 6px 2px ' + sr.color + ', 0 0 14px 4px ' + sr.color, pointerEvents: 'none',
+        animation: 'dashTravel' + si + ' ' + (3.2 + si * 0.7).toFixed(1) + 's linear ' + (1.2 + si * 0.4).toFixed(1) + 's infinite both',
+      },
     }));
-    const dashEnds = DASH_SERIES.map((sr) => {
+    const dashEnds = DASH_SERIES.map((sr, si) => {
       const v = sr.data[sr.data.length - 1];
+      const fade = 'dashFade' + dashAB + ' .5s ease-out ' + (0.9 + si * 0.1).toFixed(2) + 's both';
       return {
         label: sr.key + ' ' + v,
+        ringStyle: {
+          position: 'absolute', right: '-11px', top: 'calc(' + pctY(v).toFixed(2) + '% - 11px)',
+          width: '22px', height: '22px', borderRadius: '50%', border: '1.5px solid ' + sr.color, boxSizing: 'border-box',
+          pointerEvents: 'none', opacity: 0, animation: 'dashHalo 2.6s ease-out ' + (1.2 + si * 0.45).toFixed(2) + 's infinite',
+        },
         dotStyle: {
           position: 'absolute', right: '-4px', top: 'calc(' + pctY(v).toFixed(2) + '% - 4px)',
           width: '9px', height: '9px', borderRadius: '50%', background: sr.color,
-          border: '2px solid var(--pan2)', boxSizing: 'content-box',
+          border: '2px solid var(--pan2)', boxSizing: 'content-box', boxShadow: '0 0 10px ' + sr.color, animation: fade,
         },
         labelStyle: {
           position: 'absolute', right: '14px', top: 'calc(' + pctY(v).toFixed(2) + '% - 26px)',
           fontSize: '13px', fontWeight: 700, color: sr.color, whiteSpace: 'nowrap',
-          fontFamily: "'Rajdhani',sans-serif", letterSpacing: '0.5px',
+          fontFamily: "'Rajdhani',sans-serif", letterSpacing: '0.5px', animation: fade,
         },
       };
     });
@@ -9902,9 +9981,10 @@ class Component extends DCLogic {
       const last = i === N - 1;
       return {
         date: '2026-' + d,
-        r1: '存款  ' + DASH_SERIES[0].data[i],
-        r2: '投注  ' + DASH_SERIES[1].data[i],
-        r3: '登錄  ' + DASH_SERIES[2].data[i],
+        rows: DASH_SERIES.map((sr) => ({
+          text: sr.key + '  ' + sr.data[i],
+          style: { fontSize: '12px', color: sr.color, fontFamily: "'Share Tech Mono',monospace" },
+        })),
         bandStyle: {
           position: 'absolute', top: 0, bottom: 0,
           left: 'calc(' + pctX(i).toFixed(3) + '% - ' + (50 / (N - 1)).toFixed(2) + '%)',
@@ -9928,11 +10008,11 @@ class Component extends DCLogic {
       label: sr.key,
       swatch: { width: '14px', height: '3px', background: sr.color, display: 'inline-block' },
     }));
-    const dashTable = DASH_DATES.map((d, i) => ({
+    const dashTable = DASH_TABLE_DATES.map((d, i) => ({
       date: '2026-' + d,
-      dep: String(DASH_SERIES[0].data[i]),
-      bet: String(DASH_SERIES[1].data[i]),
-      login: String(DASH_SERIES[2].data[i]),
+      dep: String(DASH_TABLE_DATA.dep[i]),
+      bet: String(DASH_TABLE_DATA.bet[i]),
+      login: String(DASH_TABLE_DATA.login[i]),
     }));
     const UP = 'M12 19V5M6 11l6-6 6 6';
     const DOWN = 'M12 5v14M6 13l6 6 6-6';
@@ -10919,7 +10999,7 @@ class Component extends DCLogic {
     h.teAdjust = (e) => this.setState((s2) => ({ te: { ...s2.te, adjustName: e.target.value } }));
     h.teRemark = (e) => this.setState((s2) => ({ te: { ...s2.te, remark: e.target.value } }));
     h.psQuery = (e) => this.setState({ psQuery: e.target.value });
-    h.dashMetric = (e) => this.setState({ dashMetric: e.target.value });
+    h.dashMetric = (e) => this.setState((prev) => ({ dashMetric: e.target.value, dashAnim: (prev.dashAnim || 0) + 1 }));
     h.hdrQuery = (e) => this.setState({ hdrQuery: e.target.value });
     ['pmSearchField', 'pmDepField', 'pmEventField', 'pmCheckinField', 'ncbField', 'ncpField', 'noticeTypeFilter'].forEach((k) => {
       h[k] = (e) => this.setState({ [k]: e.target.value });
@@ -11192,7 +11272,7 @@ class Component extends DCLogic {
     });
     const rangeBtn = (active) => ({
       height: '28px', padding: '0 14px', display: 'flex', alignItems: 'center',
-      fontSize: '12px', fontWeight: 700, cursor: 'pointer', boxSizing: 'border-box',
+      fontSize: '12px', fontWeight: 700, cursor: 'pointer', boxSizing: 'border-box', whiteSpace: 'nowrap',
       fontFamily: "'Share Tech Mono',monospace",
       border: '1px solid ' + (active ? 'var(--acc1)' : 'var(--bd)'),
       background: active ? 'rgba(var(--acc1-rgb),.12)' : 'transparent',
@@ -12487,10 +12567,10 @@ class Component extends DCLogic {
       isDashScreen: st.screen === 'dash',
       goDashScreen: () => this.goto('dash'),
       dashMetric: st.dashMetric,
-      dashGrid, dashYTicks, dashXTicks, dashEnds, dashLines, dashBands, dashLegend, dashCards, dashToday, dashTable,
+      dashGrid, dashYTicks, dashXTicks, dashEnds, dashLines, dashLinesSvg, dashTravel, dashBands, dashLegend, dashCards, dashToday, dashTable,
       dashRanges: ['7天', '14天', '30天'].map((label) => ({
         label, style: rangeBtn(st.dashRange === label),
-        onClick: () => this.setState({ dashRange: label }),
+        onClick: () => this.setState((prev) => (prev.dashRange === label ? {} : { dashRange: label, dashAnim: (prev.dashAnim || 0) + 1 })),
       })),
       isPlatScreen: st.screen === 'plat',
       goPlatScreen: () => this.setState({ screen: 'plat' }),
