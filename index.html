@@ -3625,6 +3625,14 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 .sk-btn:hover{filter:brightness(1.08)}
 .sk-btn:active,.rwd-root [style*="cursor: pointer"][style*="height: 34px"]:active,.rwd-root [style*="cursor: pointer"][style*="height: 36px"]:active,.rwd-root [style*="cursor: pointer"][style*="height: 28px"]:active{transform:scale(.97)}
 .rwd-root [style*="cursor: pointer"][style*="height: 34px"],.rwd-root [style*="cursor: pointer"][style*="height: 36px"],.rwd-root [style*="cursor: pointer"][style*="height: 28px"]{transition:background-color .15s ease-out,border-color .15s ease-out,color .15s ease-out,transform .12s ease-out}
+/* buttons: one shape per skin for filled (.sk-btn) and outline buttons alike -
+   Cyber: double cut corner; Aurora/Verdant: pill. Outline buttons are divs whose inline style puts the
+   border right after the horizontal padding; segmented groups/tabs (border later in the style) and the
+   header search button (joined to its input) keep their own shape. */
+:root{--btn-rad:var(--rad-cut8)}
+:root[data-skin="aurora"],:root[data-skin="verdant"]{--btn-rad:999px}
+.rwd-root .sk-btn:not(.rwd-search *),
+.rwd-root div[style*="; padding: 0px "][style*="px; border: 1px solid"][style*="cursor: pointer"]{clip-path:var(--clip-cut8)!important;border-radius:var(--btn-rad)!important}
 /* fields: a hover state between default and focus (error borders keep their colour) */
 .rwd-root input:not([disabled]):not([readonly]):hover:not(:focus):not([style*="--bad"]),.rwd-root select:not([disabled]):hover:not(:focus):not([style*="--bad"]),.rwd-root textarea:not([disabled]):hover:not(:focus){border-color:var(--bd3)!important}
 .rwd-root input,.rwd-root select,.rwd-root textarea{transition:border-color .15s ease-out,box-shadow .15s ease-out}
