@@ -3583,11 +3583,63 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 .tier-opt-wd:hover{background:var(--hov);color:var(--acc2-lt)!important}
 .dash-tip{opacity:0;transition:opacity .12s ease}
 .dash-band:hover .dash-tip{opacity:1}
+
+/* ============ RWD — 響應式版面 ============
+   The markup carries inline styles (serialized by the runtime as "prop: value;"), so these overrides
+   match on those strings and need !important.
+   ≥1280 desktop as designed · <1280 drop the fixed min-width · <1024 sidebar becomes a drawer · <768 phone. */
+.rwd-burger{display:none}
+.rwd-backdrop{display:none}
+@media (max-width:1279px){
+  .rwd-root{min-width:0!important}
+  /* top tab bars scroll sideways instead of wrapping when the tabs outgrow the width */
+  .rwd-root [style*="padding: 0px 32px; border-bottom"],.rwd-root [style*="padding: 0px 28px; border-bottom"]{overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+  .rwd-root [style*="padding: 0px 32px; border-bottom"]::-webkit-scrollbar,.rwd-root [style*="padding: 0px 28px; border-bottom"]::-webkit-scrollbar{display:none}
+  .rwd-root [style*="padding: 17px 2px"]{margin-bottom:0!important}
+  /* 4- and 5-column filter / KPI grids re-flow by available width instead of squeezing */
+  [style*="grid-template-columns: repeat(4,"],[style*="grid-template-columns: repeat(5,"]{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))!important}
+  [style*="minmax(460px, 1fr)"]{grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr))!important}
+}
+@media (max-width:1023px){
+  .rwd-aside{position:fixed!important;top:0;bottom:0;left:0;z-index:85;width:260px!important;max-width:84vw;transform:translateX(-100%);transition:transform .22s ease!important}
+  :root[data-nav-open] .rwd-aside{transform:none;box-shadow:0 0 40px rgba(0,0,0,.6)}
+  :root[data-nav-open] .rwd-backdrop{display:block;position:fixed;inset:0;z-index:84;background:rgba(var(--ink-rgb),.7);backdrop-filter:blur(2px)}
+  .rwd-collapse{display:none!important}
+  .rwd-burger{display:flex!important}
+  .rwd-header{padding:0 16px!important;gap:8px!important}
+  .rwd-root [style*="padding: 24px 28px"]{padding:20px!important}
+  .rwd-root [style*="padding: 0px 32px"],.rwd-root [style*="padding: 0px 28px"]{padding-left:20px!important;padding-right:20px!important}
+  [style*="grid-template-columns: minmax(0px, 1fr) 340px"],[style*="grid-template-columns: minmax(0px, 380px) minmax(0px, 1fr)"]{grid-template-columns:minmax(0,1fr)!important}
+  .sk-panel:has(.sk-table){overflow-x:auto!important}
+}
+@media (max-width:767px){
+  .rwd-header{height:auto!important;min-height:56px;flex-wrap:wrap;padding:10px 12px!important;row-gap:10px!important}
+  .rwd-search{order:10;flex:1 1 100%}
+  .rwd-search input{flex:1;width:auto!important;min-width:0}
+  .rwd-header [style*="height: 36px"]:not([style*="width: 36px"]){padding-left:10px!important;padding-right:10px!important}
+  .rwd-chev,.rwd-skin-name{display:none}
+  .rwd-burger{margin-right:auto!important}
+  .rwd-header [style*="top: calc(100% + 8px)"]{position:fixed!important;top:auto!important;margin-top:8px;left:12px!important;right:12px!important;min-width:0!important}
+  .rwd-root [style*="padding: 24px 28px"],.rwd-root [style*="padding: 20px 28px"]{padding:16px 12px!important}
+  .rwd-root [style*="padding: 0px 32px"],.rwd-root [style*="padding: 0px 28px"]{padding-left:12px!important;padding-right:12px!important}
+  .rwd-root [style*="gap: 32px"]{gap:18px!important}
+  [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+  [style*="grid-column: span"],[style*="grid-column: 1 / -1"]{grid-column:auto!important}
+  .sk-dialog{max-width:100%!important;max-height:calc(100vh - 24px)!important;overflow:auto!important}
+  [style*="position: fixed; inset: 0px"]{padding:12px!important}
+  .sk-dlghead,.sk-dlgfoot{padding-left:16px!important;padding-right:16px!important}
+  .rwd-root input[style*="width: 178px"]{width:140px!important}
+  .rwd-root [style="display: flex; align-items: center; gap: 12px;"]{flex-wrap:wrap}
+  /* wizard step indicators scroll sideways; the inner form keeps a phone-sized gutter */
+  [style*="align-items: center; gap: 0px; padding: 20px 28px 0px"],[style*="align-items: center; padding: 28px 120px 8px"]{overflow-x:auto;scrollbar-width:none;padding-left:16px!important;padding-right:16px!important}
+  [style*="align-items: center; gap: 0px; padding: 20px 28px 0px"] > *,[style*="align-items: center; padding: 28px 120px 8px"] > *{flex-shrink:0}
+}
 </style>
 </helmet>
 
-<div data-screen-label="第三方支付設定" style="display:flex;height:100vh;min-width:1280px;color:var(--tx5);overflow:hidden;background:radial-gradient(1200px 600px at 70% -10%, rgba(var(--acc1-rgb),.07), transparent 60%), radial-gradient(900px 500px at 10% 110%, rgba(var(--acc2-rgb),.08), transparent 60%), var(--ink)">
-  <aside style="{{ s.aside }}">
+<div data-screen-label="第三方支付設定" class="rwd-root" style="display:flex;height:100vh;min-width:1280px;color:var(--tx5);overflow:hidden;background:radial-gradient(1200px 600px at 70% -10%, rgba(var(--acc1-rgb),.07), transparent 60%), radial-gradient(900px 500px at 10% 110%, rgba(var(--acc2-rgb),.08), transparent 60%), var(--ink)">
+  <div class="rwd-backdrop" onclick="{{ closeMobileNav }}"></div>
+  <aside class="rwd-aside" style="{{ s.aside }}">
     <svg class="sk-navart" aria-hidden="true" viewBox="0 0 240 900" preserveAspectRatio="xMinYMin slice" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"><defs><pattern id="nvDots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="1.2" cy="1.2" r="1" style="fill:rgba(255,255,255,.055)"/></pattern><linearGradient id="nvDotFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".30"/><stop offset=".42" stop-color="#fff" stop-opacity=".55"/><stop offset=".78" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity=".35"/></linearGradient><mask id="nvDotMask"><rect width="240" height="900" fill="url(#nvDotFade)"/></mask><radialGradient id="nvTop" cx=".12" cy="0" r=".95"><stop offset="0" style="stop-color:rgb(var(--acc1-rgb))" stop-opacity=".16"/><stop offset="1" style="stop-color:rgb(var(--acc1-rgb))" stop-opacity="0"/></radialGradient><radialGradient id="nvBot" cx=".1" cy="1" r="1"><stop offset="0" style="stop-color:rgb(var(--acc2-rgb))" stop-opacity=".13"/><stop offset="1" style="stop-color:rgb(var(--acc2-rgb))" stop-opacity="0"/></radialGradient><linearGradient id="nvRail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:rgb(var(--acc1-rgb))" stop-opacity="0"/><stop offset=".2" style="stop-color:rgb(var(--acc1-rgb))" stop-opacity=".55"/><stop offset=".7" style="stop-color:rgb(var(--acc1-rgb))" stop-opacity=".22"/><stop offset="1" style="stop-color:rgb(var(--acc1-rgb))" stop-opacity="0"/></linearGradient></defs><rect width="240" height="900" fill="url(#nvTop)"/><rect width="240" height="900" fill="url(#nvBot)"/><rect width="240" height="900" fill="url(#nvDots)" mask="url(#nvDotMask)"/><rect x="5" y="0" width="1" height="900" fill="url(#nvRail)"/><rect x="2.5" y="150" width="6" height="1" style="fill:rgba(var(--acc1-rgb),.22)"/><rect x="2.5" y="236" width="6" height="1" style="fill:rgba(var(--acc1-rgb),.22)"/><rect x="2.5" y="322" width="6" height="1" style="fill:rgba(var(--acc1-rgb),.22)"/><rect x="2.5" y="408" width="6" height="1" style="fill:rgba(var(--acc1-rgb),.22)"/><rect x="2.5" y="494" width="6" height="1" style="fill:rgba(var(--acc1-rgb),.22)"/><rect x="2.5" y="580" width="6" height="1" style="fill:rgba(var(--acc1-rgb),.22)"/><rect x="3.2" y="233.7" width="4.6" height="4.6" transform="rotate(45 5.5 236)" style="fill:rgba(var(--acc1-rgb),.5)"/><rect x="3.2" y="491.7" width="4.6" height="4.6" transform="rotate(45 5.5 494)" style="fill:rgba(var(--acc1-rgb),.5)"/></svg>
     <div style="{{ s.navHeader }}">
       <div style="width:26px;height:26px;flex-shrink:0;background:linear-gradient(135deg,var(--acc1),var(--acc2));clip-path:var(--clip-mark);border-radius:var(--rad-mark);display:flex;align-items:center;justify-content:center"><span style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:var(--ink)">C</span></div>
@@ -3659,7 +3711,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
       </sc-for>
     </nav>
     <div style="{{ s.navFooter }}">
-      <div onclick="{{ toggleNavCollapse }}" style="{{ s.navCollapseBtn }}" style-hover="border-color:var(--acc1);color:var(--acc1)">
+      <div onclick="{{ toggleNavCollapse }}" class="rwd-collapse" style="{{ s.navCollapseBtn }}" style-hover="border-color:var(--acc1);color:var(--acc1)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ navCollapseIcon }}"></path></svg>
       </div>
       <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
@@ -3672,14 +3724,15 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
   </aside>
 
   <div style="flex:1;display:flex;flex-direction:column;min-width:0">
-    <header style="height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 28px;border-bottom:1px solid var(--div);background:rgba(var(--nav-rgb),.8);position:relative;z-index:30">
-      <div style="display:flex">
+    <header class="rwd-header" style="height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 28px;border-bottom:1px solid var(--div);background:rgba(var(--nav-rgb),.8);position:relative;z-index:30">
+      <div onclick="{{ openMobileNav }}" class="rwd-burger" aria-label="選單" style="width:36px;height:36px;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--bd2);color:var(--tx2);margin-right:auto;clip-path:var(--clip-cut6);border-radius:var(--rad-cut6)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div>
+      <div class="rwd-search" style="display:flex">
         <input value="{{ hdrQuery }}" onchange="{{ h.hdrQuery }}" placeholder="客戶名稱" style="height:36px;width:200px;border:1px solid var(--bd2);border-right:none;padding:0 12px;font-size:13px;color:var(--tx5);background:var(--fld);box-sizing:border-box;font-family:inherit;border-radius:0">
         <div onclick="{{ hdrSearch }}" class="scp2 sk-btn" style="width:40px;height:36px;background:var(--acc1);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;clip-path:var(--clip-btnr);border-radius:var(--rad-btnr)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6"></circle><path d="M15.5 15.5 20 20"></path></svg></div>
       </div>
 
       <div style="position:relative">
-        <div onclick="{{ toggleHdrSkin }}" style="{{ s.hdrSkinTrig }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 1.6-3.2 2 2 0 0 1 1.6-3.2H19a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"></path><circle cx="7.5" cy="12" r="1.1"></circle><circle cx="10" cy="7.8" r="1.1"></circle><circle cx="15" cy="8.2" r="1.1"></circle></svg><span>{{ skinName }}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#42557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></div>
+        <div onclick="{{ toggleHdrSkin }}" style="{{ s.hdrSkinTrig }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1.5a2 2 0 0 0 1.6-3.2 2 2 0 0 1 1.6-3.2H19a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"></path><circle cx="7.5" cy="12" r="1.1"></circle><circle cx="10" cy="7.8" r="1.1"></circle><circle cx="15" cy="8.2" r="1.1"></circle></svg><span class="rwd-skin-name">{{ skinName }}</span><svg class="rwd-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#42557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></div>
         <sc-if value="{{ hdrSkinOpen }}" hint-placeholder-val="{{ false }}">
           <div style="position:absolute;top:calc(100% + 8px);right:0;min-width:262px;background:var(--fld);border:1px solid rgba(var(--acc1-rgb),.35);box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:60;display:flex;flex-direction:column;padding:6px 0;border-radius:var(--rad-cut8)">
             <div style="padding:9px 16px 7px;font-size:10px;color:var(--tx4);letter-spacing:2px;font-family:'Share Tech Mono',monospace">SKIN / 介面外觀</div>
@@ -3698,7 +3751,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
       </div>
 
       <div style="position:relative">
-        <div onclick="{{ toggleHdrLang }}" style="{{ s.hdrLangTrig }}"><span>{{ hdrLang }}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#42557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></div>
+        <div onclick="{{ toggleHdrLang }}" style="{{ s.hdrLangTrig }}"><span>{{ hdrLang }}</span><svg class="rwd-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#42557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></div>
         <sc-if value="{{ hdrLangOpen }}" hint-placeholder-val="{{ false }}">
           <div style="position:absolute;top:calc(100% + 8px);right:0;min-width:180px;background:var(--fld);border:1px solid rgba(var(--acc1-rgb),.35);box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:60;display:flex;flex-direction:column;padding:6px 0">
             <sc-for list="{{ hdrLangs }}" as="lg" hint-placeholder-count="5">
@@ -3709,7 +3762,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
       </div>
 
       <div style="position:relative">
-        <div onclick="{{ toggleHdrTz }}" style="{{ s.hdrTzTrig }}"><span style="font-family:'Share Tech Mono',monospace">{{ hdrTz }}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#42557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></div>
+        <div onclick="{{ toggleHdrTz }}" style="{{ s.hdrTzTrig }}"><span style="font-family:'Share Tech Mono',monospace">{{ hdrTz }}</span><svg class="rwd-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#42557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></div>
         <sc-if value="{{ hdrTzOpen }}" hint-placeholder-val="{{ false }}">
           <div style="position:absolute;top:calc(100% + 8px);right:0;min-width:180px;background:var(--fld);border:1px solid rgba(var(--acc1-rgb),.35);box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:60;display:flex;flex-direction:column;padding:6px 0;max-height:280px;overflow-y:auto;min-width:150px">
             <sc-for list="{{ hdrTzs }}" as="tz" hint-placeholder-count="8">
@@ -3749,7 +3802,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
       <div style="position:relative">
         <div onclick="{{ toggleHdrUser }}" style="{{ s.hdrUserTrig }}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20c1.3-3 4-4.5 7-4.5s5.7 1.5 7 4.5"></path></svg>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#42557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+          <svg class="rwd-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#42557A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
         </div>
         <sc-if value="{{ hdrUserOpen }}" hint-placeholder-val="{{ false }}">
           <div style="position:absolute;top:calc(100% + 8px);right:0;min-width:180px;background:var(--fld);border:1px solid rgba(var(--acc1-rgb),.35);box-shadow:0 12px 30px rgba(0,0,0,.6);z-index:60;display:flex;flex-direction:column;padding:6px 0;min-width:200px;padding:0">
@@ -9246,7 +9299,7 @@ class Component extends DCLogic {
       dashMetric: '激活', dashRange: '7天',
       platTab: 'user', platSetTab: 'basic', vendorTab: 'vendor', betNav: 'bet', betCat: '捕魚',
       paysetTab: 'dep', depEdit: false, wdEdit: false,
-      navCollapsed: false, openGroups: [],
+      navCollapsed: false, openGroups: [], mobileNav: false,
       skin: readPref('skin', 'cyber', SKIN_KEYS),
       hdrOpen: '', hdrLang: LANG_DEFAULT, hdrTz: 'GMT+8', hdrQuery: '',
       hdrAlerts: [
@@ -9630,7 +9683,14 @@ class Component extends DCLogic {
     }));
   }
 
+  // Below the tablet breakpoint the sidebar is an off-canvas drawer; CSS keys off this root attribute.
+  setMobileNav(open) {
+    if (typeof document !== 'undefined') document.documentElement.toggleAttribute('data-nav-open', open);
+    this.setState(open ? { mobileNav: true, navCollapsed: false } : { mobileNav: false });
+  }
+
   goto(screen, group) {
+    if (this.state.mobileNav) this.setMobileNav(false);
     this.setState((prev) => ({
       screen,
       openGroups: group && !prev.openGroups.includes(group) ? [...prev.openGroups, group] : prev.openGroups,
@@ -9826,6 +9886,8 @@ class Component extends DCLogic {
     });
     const dashBands = DASH_DATES.map((d, i) => {
       const flip = i >= N - 2;
+      // the last band stops at its point (the chart's right edge) so it never pushes the page sideways
+      const last = i === N - 1;
       return {
         date: '2026-' + d,
         r1: '存款  ' + DASH_SERIES[0].data[i],
@@ -9834,14 +9896,14 @@ class Component extends DCLogic {
         bandStyle: {
           position: 'absolute', top: 0, bottom: 0,
           left: 'calc(' + pctX(i).toFixed(3) + '% - ' + (50 / (N - 1)).toFixed(2) + '%)',
-          width: (100 / (N - 1)).toFixed(2) + '%',
+          width: ((last ? 50 : 100) / (N - 1)).toFixed(2) + '%',
         },
         crossStyle: {
-          position: 'absolute', top: 0, bottom: 0, left: '50%', width: '1px',
+          position: 'absolute', top: 0, bottom: 0, left: last ? 'auto' : '50%', right: last ? 0 : 'auto', width: '1px',
           background: 'repeating-linear-gradient(180deg,#2A3C5C 0 4px,transparent 4px 8px)',
         },
         tipStyle: {
-          position: 'absolute', top: '10px', left: flip ? 'auto' : '50%', right: flip ? '50%' : 'auto',
+          position: 'absolute', top: '10px', left: flip ? 'auto' : '50%', right: last ? 0 : flip ? '50%' : 'auto',
           marginLeft: flip ? 0 : '10px', marginRight: flip ? '10px' : 0,
           width: '164px', padding: '12px 14px', boxSizing: 'border-box',
           display: 'flex', flexDirection: 'column', gap: '7px',
@@ -10999,7 +11061,7 @@ class Component extends DCLogic {
       fontWeight: active ? 700 : 400, letterSpacing: '1px',
       color: active ? 'var(--tx)' : 'var(--tx4)',
       borderBottom: active ? '2px solid var(--acc1)' : '2px solid transparent',
-      marginBottom: '-1px',
+      marginBottom: '-1px', whiteSpace: 'nowrap', flexShrink: 0,
       textShadow: active ? '0 0 12px rgba(var(--acc1-rgb),.5)' : 'none',
     });
     const prodBtnStyle = (active) => ({
@@ -12372,6 +12434,8 @@ class Component extends DCLogic {
       navExpanded: !collapsed,
       navCollapseIcon: collapsed ? 'm9 6 6 6-6 6' : 'm15 6-6 6 6 6',
       toggleNavCollapse: () => this.setState((prev) => ({ navCollapsed: !prev.navCollapsed })),
+      openMobileNav: () => this.setMobileNav(true),
+      closeMobileNav: () => this.setMobileNav(false),
       platGroupOpen: !collapsed && st.openGroups.includes('plat'),
       payGroupOpen: !collapsed && st.openGroups.includes('pay'),
       playerGroupOpen: !collapsed && st.openGroups.includes('player'),
