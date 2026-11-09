@@ -3588,7 +3588,6 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 @keyframes dashRevealB{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 @keyframes dashFadeA{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes dashFadeB{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
-@keyframes dashFlow{to{stroke-dashoffset:-50}}
 @keyframes dashHalo{0%{transform:scale(.55);opacity:.85}100%{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){.dash-anim{animation:none!important}.dash-deco{display:none}}
 
@@ -7098,15 +7097,21 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
                 </sc-for>
               </svg>
               <svg class="dash-anim" viewBox="0 0 1000 276" preserveAspectRatio="none" style="{{ dashLinesSvg }}">
+                <defs>
+                  <linearGradient id="dashWave" gradientUnits="userSpaceOnUse" x1="-360" y1="0" x2="0" y2="0">
+                    <stop offset="0" stop-color="#fff" stop-opacity="0"></stop>
+                    <stop offset=".55" stop-color="#fff" stop-opacity=".95"></stop>
+                    <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+                    <animateTransform attributeName="gradientTransform" type="translate" values="0 0;1360 0;1360 0" keyTimes="0;.72;1" dur="3.6s" begin="1.2s" repeatCount="indefinite"></animateTransform>
+                  </linearGradient>
+                </defs>
                 <sc-for list="{{ dashLines }}" as="ln" hint-placeholder-count="3">
                   <polyline points="{{ ln.points }}" style="{{ ln.glowStyle }}"></polyline>
                   <polyline points="{{ ln.points }}" style="{{ ln.lineStyle }}"></polyline>
-                  <polyline class="dash-anim dash-deco" points="{{ ln.points }}" style="{{ ln.flowStyle }}"></polyline>
+                  <polyline class="dash-deco" points="{{ ln.points }}" style="{{ ln.waveGlow }}"></polyline>
+                  <polyline class="dash-deco" points="{{ ln.points }}" style="{{ ln.waveLine }}"></polyline>
                 </sc-for>
               </svg>
-              <sc-for list="{{ dashTravel }}" as="tv" hint-placeholder-count="3">
-                <span class="dash-anim dash-deco" style="{{ tv.style }}"></span>
-              </sc-for>
               <sc-for list="{{ dashEnds }}" as="ed" hint-placeholder-count="3">
                 <span class="dash-anim dash-deco" style="{{ ed.ringStyle }}"></span>
                 <span class="dash-anim" style="{{ ed.dotStyle }}"></span>
@@ -9710,16 +9715,6 @@ class Component extends DCLogic {
     }));
   }
 
-  // A glowing dot travels each trend line; its path depends on the data, so the keyframes are generated.
-  syncDashTravel(key, series) {
-    if (typeof document === 'undefined' || this._dashTravelKey === key) return;
-    this._dashTravelKey = key;
-    let el = document.getElementById('dash-travel-kf');
-    if (!el) { el = document.createElement('style'); el.id = 'dash-travel-kf'; document.head.appendChild(el); }
-    el.textContent = series.map((pts, si) => '@keyframes dashTravel' + si + '{' + pts.map(([x, y], i) =>
-      (i / (pts.length - 1) * 100).toFixed(2) + '%{left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;opacity:' + (i === 0 || i === pts.length - 1 ? 0 : 1) + '}').join('') + '}').join('\n');
-  }
-
   // Below the tablet breakpoint the sidebar is an off-canvas drawer; CSS keys off this root attribute.
   setMobileNav(open) {
     if (typeof document !== 'undefined') document.documentElement.toggleAttribute('data-nav-open', open);
@@ -9929,8 +9924,6 @@ class Component extends DCLogic {
     // motion: every metric/range switch bumps dashAnim; alternating between two identical keyframe
     // names restarts the draw-in animation without re-creating the elements
     const dashAB = (st.dashAnim || 0) % 2 ? 'B' : 'A';
-    const dashKfKey = st.dashMetric + '|' + st.dashRange;
-    this.syncDashTravel(dashKfKey, DASH_SERIES.map((sr) => sr.data.map((v, i) => [pctX(i), pctY(v)])));
     const dashLinesSvg = { position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', overflow: 'visible',
       animation: 'dashReveal' + dashAB + ' 1.2s cubic-bezier(.2,.8,.2,1) both' };
     const dashLines = DASH_SERIES.map((sr, si) => {
@@ -9939,18 +9932,11 @@ class Component extends DCLogic {
         points,
         glowStyle: { fill: 'none', stroke: sr.color, strokeWidth: 6, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke', opacity: 0.14 },
         lineStyle: { fill: 'none', stroke: sr.color, strokeWidth: 2, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
-        // short bright dashes marching along the line, like packets on a link
-        flowStyle: { fill: 'none', stroke: '#fff', strokeWidth: 2, strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke',
-          strokeDasharray: '3 22', opacity: 0.55, animation: 'dashFlow ' + (1.4 + si * 0.25).toFixed(2) + 's linear infinite' },
+        // a soft band of light (gradient #dashWave, moved by SMIL) sweeps left to right over every line
+        waveGlow: { fill: 'none', stroke: 'url(#dashWave)', strokeWidth: 8, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke', opacity: 0.35 },
+        waveLine: { fill: 'none', stroke: 'url(#dashWave)', strokeWidth: 2.4, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
       };
     });
-    const dashTravel = DASH_SERIES.map((sr, si) => ({
-      style: {
-        position: 'absolute', width: '7px', height: '7px', margin: '-3.5px 0 0 -3.5px', borderRadius: '50%',
-        background: '#fff', boxShadow: '0 0 6px 2px ' + sr.color + ', 0 0 14px 4px ' + sr.color, pointerEvents: 'none',
-        animation: 'dashTravel' + si + ' ' + (3.2 + si * 0.7).toFixed(1) + 's linear ' + (1.2 + si * 0.4).toFixed(1) + 's infinite both',
-      },
-    }));
     const dashEnds = DASH_SERIES.map((sr, si) => {
       const v = sr.data[sr.data.length - 1];
       const fade = 'dashFade' + dashAB + ' .5s ease-out ' + (0.9 + si * 0.1).toFixed(2) + 's both';
@@ -12565,7 +12551,7 @@ class Component extends DCLogic {
       isDashScreen: st.screen === 'dash',
       goDashScreen: () => this.goto('dash'),
       dashMetric: st.dashMetric,
-      dashGrid, dashYTicks, dashXTicks, dashEnds, dashLines, dashLinesSvg, dashTravel, dashBands, dashLegend, dashCards, dashToday, dashTable,
+      dashGrid, dashYTicks, dashXTicks, dashEnds, dashLines, dashLinesSvg, dashBands, dashLegend, dashCards, dashToday, dashTable,
       dashRanges: ['7天', '14天', '30天'].map((label) => ({
         label, style: rangeBtn(st.dashRange === label),
         onClick: () => this.setState((prev) => (prev.dashRange === label ? {} : { dashRange: label, dashAnim: (prev.dashAnim || 0) + 1 })),
