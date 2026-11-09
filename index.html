@@ -11461,8 +11461,9 @@ class Component extends DCLogic {
         display: 'flex', flexDirection: 'column', transition: 'width .18s ease',
         position: 'relative', overflow: 'hidden',
       },
+      // collapsed: the header only held the product switcher (hidden when collapsed), so drop it and start the icons at the top
       navHeader: {
-        height: '64px', display: 'flex', alignItems: 'center', gap: collapsed ? 0 : '10px',
+        height: '64px', display: collapsed ? 'none' : 'flex', alignItems: 'center', gap: collapsed ? 0 : '10px',
         justifyContent: collapsed ? 'center' : 'flex-start',
         padding: collapsed ? 0 : '0 16px', borderBottom: '1px solid var(--div)',
         position: 'relative', zIndex: 1,
