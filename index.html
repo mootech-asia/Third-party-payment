@@ -7109,7 +7109,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
                 <span style="font-size:12px;color:var(--tx3);letter-spacing:1px">{{ c.label }}</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ c.trendColor }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.trendPath }}"></path></svg>
               </div>
-              <span style="{{ c.valueStyle }}">{{ c.value }}</span>
+              <span class="dash-count" style="{{ c.valueStyle }}">{{ c.value }}</span>
             </div>
           </sc-for>
         </div>
@@ -8971,6 +8971,50 @@ const DP_L10N = {
     week: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'], head: (y, m) => (m + 1) + '/' + y },
 };
 
+// Dashboard KPI figures count up from 0 once, when the site is first opened.
+// Works on the rendered text so the final value is always exactly the template's string.
+function installCountUp() {
+  if (typeof window === 'undefined' || window.__countUpDone) return;
+  window.__countUpDone = true;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let tries = 0;
+  const start = () => {
+    const els = Array.from(document.querySelectorAll('.dash-count'));
+    if (!els.length) { if (++tries < 40) requestAnimationFrame(start); return; }
+    els.forEach((host, i) => {
+      // write to the template's own text node so later re-renders still find it
+      const tw = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+      let el = null;
+      for (let n = tw.nextNode(); n; n = tw.nextNode()) if (n.nodeValue.trim()) { el = n; break; }
+      if (!el) return;
+      const finalRaw = el.nodeValue;
+      const finalText = finalRaw.trim();
+      const m = /^([^0-9]*)([0-9][0-9,]*)(?:\.([0-9]+))?(.*)$/.exec(finalText);
+      if (!m) return;
+      const [, pre, intPart, dec = '', post] = m;
+      const target = parseFloat(intPart.replace(/,/g, '') + (dec ? '.' + dec : ''));
+      const grouped = intPart.indexOf(',') >= 0;
+      const fmt = (v) => {
+        let t = v.toFixed(dec.length);
+        if (grouped) { const [a, b] = t.split('.'); t = a.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (b ? '.' + b : ''); }
+        return pre + t + post;
+      };
+      const dur = 1200, delay = i * 60;
+      let t0 = null;
+      el.nodeValue = fmt(0);
+      const step = (now) => {
+        if (t0 === null) t0 = now + delay;
+        const k = Math.min(1, Math.max(0, (now - t0) / dur));
+        const eased = 1 - Math.pow(1 - k, 3);
+        el.nodeValue = k >= 1 ? finalRaw : fmt(target * eased);
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  };
+  requestAnimationFrame(start);
+}
+
 function installDatePicker() {
   if (typeof window === 'undefined' || window.__dpReady || !document.body) return;
   window.__dpReady = true;
@@ -9801,6 +9845,7 @@ class Component extends DCLogic {
     installTicker();
     installDatePicker();
     this.installLangHotkey();
+    installCountUp();
   }
 
   // Ctrl+Alt+L / Control+Option+L toggles 繁體中文 and back to the language picked before it.
