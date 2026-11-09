@@ -9412,7 +9412,7 @@ class Component extends DCLogic {
       dashMetric: '激活', dashRange: '7天', dashAnim: 0,
       platTab: 'user', platSetTab: 'basic', vendorTab: 'vendor', betNav: 'bet', betCat: '捕魚',
       paysetTab: 'dep', depEdit: false, wdEdit: false,
-      navCollapsed: false, openGroups: [], mobileNav: false,
+      navCollapsed: false, navPeek: false, openGroups: [], mobileNav: false,
       skin: readPref('skin', 'cyber', SKIN_KEYS),
       hdrOpen: '', hdrLang: LANG_DEFAULT, hdrTz: 'GMT+8', hdrQuery: '',
       hdrAlerts: [
@@ -9846,6 +9846,28 @@ class Component extends DCLogic {
     installDatePicker();
     this.installLangHotkey();
     installCountUp();
+    this.installNavPeek();
+  }
+
+  // Hover-to-open for the collapsed sidebar: mouse only (touch keeps tap behaviour), desktop widths only,
+  // short open delay so a pointer passing by does not trigger it.
+  installNavPeek() {
+    if (this._navPeek) return;
+    const aside = document.querySelector('.rwd-aside');
+    if (!aside) { requestAnimationFrame(() => this.installNavPeek()); return; }
+    this._navPeek = true;
+    let timer = 0;
+    const canPeek = () => window.matchMedia('(hover: hover) and (min-width: 1024px)').matches;
+    aside.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse' || !this.state.navCollapsed || !canPeek()) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => this.setState({ navPeek: true }), 140);
+    });
+    aside.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      clearTimeout(timer);
+      if (this.state.navPeek) timer = setTimeout(() => this.setState({ navPeek: false }), 180);
+    });
   }
 
   // Ctrl+Alt+L / Control+Option+L toggles 繁體中文 and back to the language picked before it.
@@ -11232,7 +11254,9 @@ class Component extends DCLogic {
       clipPath: 'var(--clip-cut6)', borderRadius: 'var(--rad-cut6)',
       transition: 'color .15s',
     });
-    const collapsed = st.navCollapsed;
+    // navPeek: a collapsed sidebar opens as an overlay while the mouse rests on it (vertical-tab rail style)
+    const peeking = st.navCollapsed && st.navPeek;
+    const collapsed = st.navCollapsed && !st.navPeek;
     const subNavStyle = (active) => ({
       height: '38px', display: 'flex', alignItems: 'center',
       paddingLeft: active ? '52px' : '54px', margin: '1px 12px',
@@ -11273,7 +11297,7 @@ class Component extends DCLogic {
       return {
         ...n,
         chevPath: st.openGroups.includes(n.label) ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6',
-        open: !st.navCollapsed && st.openGroups.includes(n.label),
+        open: !collapsed && st.openGroups.includes(n.label),
         hasSubs: !!mod,
         noSubs: !mod,
         subs: mod ? mod.subs.map(([k, label]) => ({
@@ -11283,7 +11307,7 @@ class Component extends DCLogic {
         })) : [],
         style: navGroupStyle(!!mod && st.screen === mod.screen),
         onClick: () => {
-          if (st.navCollapsed) {
+          if (collapsed) {
             if (mod) this.goto(mod.screen, n.label);
             else this.showToast('「' + n.label + '」未在此原型中提供');
           } else {
@@ -11456,9 +11480,13 @@ class Component extends DCLogic {
       ppAutoWdTrack: miniTrack(st.ppAutoWd), ppAutoWdLabel: miniLabel(st.ppAutoWd), ppAutoWdKnob: miniKnob(st.ppAutoWd),
       aside: {
         width: collapsed ? '68px' : '232px', flexShrink: 0,
+        // while peeking the rail keeps its 68px slot and the extra width floats over the page
+        marginRight: peeking ? '-164px' : 0, zIndex: peeking ? 40 : 'auto',
+        boxShadow: peeking ? '12px 0 32px rgba(0,0,0,.45)' : 'none',
         borderRight: '1px solid var(--div)',
         background: 'linear-gradient(180deg,var(--nav1),var(--nav2))',
-        display: 'flex', flexDirection: 'column', transition: 'width .18s ease',
+        display: 'flex', flexDirection: 'column',
+        transition: 'width .2s cubic-bezier(.23,1,.32,1), margin-right .2s cubic-bezier(.23,1,.32,1), box-shadow .2s ease-out',
         position: 'relative', overflow: 'hidden',
       },
       // collapsed: the header only held the product switcher (hidden when collapsed), so drop it and start the icons at the top
@@ -12591,8 +12619,8 @@ class Component extends DCLogic {
       ppAutoCounting: ppCounting(st.ppAuto),
       ppAutoWdCounting: ppCounting(st.ppAutoWd),
       navExpanded: !collapsed,
-      navCollapseIcon: collapsed ? 'm9 6 6 6-6 6' : 'm15 6-6 6 6 6',
-      toggleNavCollapse: () => this.setState((prev) => ({ navCollapsed: !prev.navCollapsed })),
+      navCollapseIcon: st.navCollapsed ? 'm9 6 6 6-6 6' : 'm15 6-6 6 6 6',
+      toggleNavCollapse: () => this.setState((prev) => ({ navCollapsed: !prev.navCollapsed, navPeek: false })),
       openMobileNav: () => this.setMobileNav(true),
       closeMobileNav: () => this.setMobileNav(false),
       platGroupOpen: !collapsed && st.openGroups.includes('plat'),
