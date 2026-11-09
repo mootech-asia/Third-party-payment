@@ -9,14 +9,16 @@
 /* entry splash: shown until the app has rendered (at least 1s on screen), then fades out */
 #app-splash{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 500px at 50% 40%,rgba(var(--acc1-rgb,0,229,255),.08),transparent 60%),var(--ink,#060A13);transition:opacity .35s cubic-bezier(.23,1,.32,1),visibility .35s}
 #app-splash.is-done{opacity:0;visibility:hidden}
-#app-splash .sp-bars{display:flex;align-items:center;gap:6px;height:44px}
-#app-splash .sp-bars i{display:block;width:5px;height:100%;border-radius:3px;background:linear-gradient(180deg,var(--acc1,#00E5FF),var(--acc2,#7C5CFF));transform-origin:center;animation:spWave 1.1s cubic-bezier(.45,0,.55,1) infinite;box-shadow:0 0 12px rgba(var(--acc1-rgb,0,229,255),.35)}
+#app-splash .sp-bars{display:flex;align-items:center;gap:7px;height:56px}
+#app-splash .sp-bars i{display:block;width:6px;height:100%;border-radius:3px;will-change:transform,opacity;background:linear-gradient(180deg,var(--acc1,#00E5FF),var(--acc2,#7C5CFF));transform-origin:center;animation:spWave 1.1s cubic-bezier(.45,0,.55,1) infinite;box-shadow:0 0 12px rgba(var(--acc1-rgb,0,229,255),.35)}
 #app-splash .sp-bars i:nth-child(2){animation-delay:.1s}
 #app-splash .sp-bars i:nth-child(3){animation-delay:.2s}
 #app-splash .sp-bars i:nth-child(4){animation-delay:.3s}
 #app-splash .sp-bars i:nth-child(5){animation-delay:.4s}
 @keyframes spWave{0%,100%{transform:scaleY(.3);opacity:.5}50%{transform:scaleY(1);opacity:1}}
-@media (prefers-reduced-motion:reduce){#app-splash .sp-bars i{animation:none;transform:scaleY(.6)}}
+/* reduced motion: no movement, but the bars still breathe in brightness so the screen never looks frozen */
+@keyframes spGlow{0%,100%{opacity:.3}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){#app-splash .sp-bars i{transform:scaleY(.6);animation-name:spGlow}}
 </style>
 
 </head>
