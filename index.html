@@ -3593,9 +3593,9 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 @media (max-width:1279px){
   .rwd-root{min-width:0!important}
   /* top tab bars scroll sideways instead of wrapping when the tabs outgrow the width */
-  .rwd-root [style*="padding: 0px 32px; border-bottom"],.rwd-root [style*="padding: 0px 28px; border-bottom"]{overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
-  .rwd-root [style*="padding: 0px 32px; border-bottom"]::-webkit-scrollbar,.rwd-root [style*="padding: 0px 28px; border-bottom"]::-webkit-scrollbar{display:none}
-  .rwd-root [style*="padding: 17px 2px"]{margin-bottom:0!important}
+  .rwd-root div:has(> [style*="margin-bottom: -1px; white-space: nowrap"]){overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+  .rwd-root div:has(> [style*="margin-bottom: -1px; white-space: nowrap"])::-webkit-scrollbar{display:none}
+  .rwd-root [style*="margin-bottom: -1px; white-space: nowrap"]{margin-bottom:0!important}
   /* 4- and 5-column filter / KPI grids re-flow by available width instead of squeezing */
   [style*="grid-template-columns: repeat(4,"],[style*="grid-template-columns: repeat(5,"]{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))!important}
   [style*="minmax(460px, 1fr)"]{grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr))!important}
@@ -3611,6 +3611,8 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
   .rwd-root [style*="padding: 0px 32px"],.rwd-root [style*="padding: 0px 28px"]{padding-left:20px!important;padding-right:20px!important}
   [style*="grid-template-columns: minmax(0px, 1fr) 340px"],[style*="grid-template-columns: minmax(0px, 380px) minmax(0px, 1fr)"]{grid-template-columns:minmax(0,1fr)!important}
   .sk-panel:has(.sk-table){overflow-x:auto!important}
+  /* short labels in table cells (roles, tags) stay on one line; the table scrolls instead */
+  .sk-tbody > div > div > span{white-space:nowrap}
 }
 @media (max-width:767px){
   .rwd-header{height:auto!important;min-height:56px;flex-wrap:wrap;padding:10px 12px!important;row-gap:10px!important}
@@ -3630,6 +3632,16 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
   .sk-dlghead,.sk-dlgfoot{padding-left:16px!important;padding-right:16px!important}
   .rwd-root input[style*="width: 178px"]{width:140px!important}
   .rwd-root [style="display: flex; align-items: center; gap: 12px;"]{flex-wrap:wrap}
+  /* side sub-menu + content: the menu becomes a full-width strip above the content */
+  .rwd-wrap{flex-wrap:wrap}
+  .rwd-wrap > [style*="max-width: 460px"]{flex:1 1 100%!important;max-width:none!important}
+  .rwd-wrap > [style*="min-width: 280px"]{flex:1 1 0;min-width:0!important}
+  .rwd-root [style*="height: 34px; padding: 0px 2"]{white-space:nowrap;flex-shrink:0}
+  .rwd-root [style*="position: relative; width: 280px"]{width:100%!important;flex:1 1 100%}
+  .rwd-split{flex-direction:column!important;align-items:stretch!important;gap:14px!important}
+  .rwd-side{width:auto!important;flex-direction:row!important;overflow-x:auto;padding:6px 0!important;scrollbar-width:none}
+  .rwd-side > *{flex-shrink:0;white-space:nowrap}
+  .rwd-root [style*="padding: 20px 26px 10px"]{padding:16px 16px 6px!important}
   /* wizard step indicators scroll sideways; the inner form keeps a phone-sized gutter */
   [style*="align-items: center; gap: 0px; padding: 20px 28px 0px"],[style*="align-items: center; padding: 28px 120px 8px"]{overflow-x:auto;scrollbar-width:none;padding-left:16px!important;padding-right:16px!important}
   [style*="align-items: center; gap: 0px; padding: 20px 28px 0px"] > *,[style*="align-items: center; padding: 28px 120px 8px"] > *{flex-shrink:0}
@@ -4774,7 +4786,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
                 </div>
                 <span style="font-size:11px;color:var(--tx4)">最多選擇 3 個欄位</span>
               </div>
-              <div style="display:flex;align-items:flex-start;gap:12px">
+              <div class="rwd-wrap" style="display:flex;align-items:flex-start;gap:12px">
                 <div style="flex:1;max-width:460px;display:flex;flex-direction:column;gap:6px">
                   <input value="{{ pn.q }}" onchange="{{ h.pnQ }}" placeholder="搜索字串" style="width:100%;height:34px;border:1px solid var(--bd2);padding:0 12px;background:var(--fld);font-size:13px;color:var(--tx);font-family:inherit;box-sizing:border-box;border-radius:0">
                   <span style="font-size:11px;color:var(--tx4)">請使用有效字元：A-Z，0-9，@._-</span>
@@ -5254,8 +5266,8 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
         </sc-if>
 
         <sc-if value="{{ promoBetTab }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;gap:20px;align-items:flex-start">
-            <div class="sk-panel" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);width:170px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column">
+          <div class="rwd-split" style="display:flex;gap:20px;align-items:flex-start">
+            <div class="sk-panel rwd-side" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);width:170px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column">
               <div style="{{ s.rebateNavItem }}">玩家投注返利</div>
             </div>
             <div style="flex:1;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px">
@@ -5790,7 +5802,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 
         <sc-if value="{{ noticePlainTab }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:20px">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+            <div class="rwd-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:16px">
               <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--bd2);background:var(--fld);height:36px;padding:0 10px;min-width:280px">
                 <span style="{{ s.noticeTypeChip }}">類型<svg onclick="{{ clearNoticeType }}" style="cursor:pointer;margin-left:6px" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></span>
               </div>
@@ -6964,8 +6976,8 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
           </div>
         </sc-if>
         <sc-if value="{{ paysetWdTab }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;gap:20px;align-items:flex-start">
-            <div class="sk-panel" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);width:170px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column">
+          <div class="rwd-split" style="display:flex;gap:20px;align-items:flex-start">
+            <div class="sk-panel rwd-side" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);width:170px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column">
               <div style="{{ s.wdNavItem }}">提款與支付</div>
             </div>
             <div class="sk-panel" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);flex:1;min-width:0;padding:20px 26px 10px;display:flex;flex-direction:column;max-width:1000px">
@@ -6999,8 +7011,8 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
           </div>
         </sc-if>
         <sc-if value="{{ paysetFrontTab }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;gap:20px;align-items:flex-start">
-            <div class="sk-panel" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);width:170px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column">
+          <div class="rwd-split" style="display:flex;gap:20px;align-items:flex-start">
+            <div class="sk-panel rwd-side" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);width:170px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column">
               <div style="{{ s.bankNavItem }}">普通銀行控制</div>
             </div>
             <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
@@ -7297,8 +7309,8 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
           </div>
         </sc-if>
         <sc-if value="{{ platBetPage }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;gap:20px;align-items:flex-start">
-            <div class="sk-panel" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);width:170px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column">
+          <div class="rwd-split" style="display:flex;gap:20px;align-items:flex-start">
+            <div class="sk-panel rwd-side" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);width:170px;flex-shrink:0;padding:10px 0;display:flex;flex-direction:column">
               <sc-for list="{{ betNavItems }}" as="bn" hint-placeholder-count="2">
                 <div onclick="{{ bn.onClick }}" style="{{ bn.style }}">{{ bn.label }}</div>
               </sc-for>
@@ -9885,7 +9897,7 @@ class Component extends DCLogic {
       };
     });
     const dashBands = DASH_DATES.map((d, i) => {
-      const flip = i >= N - 2;
+      const flip = i >= (N - 1) / 2;
       // the last band stops at its point (the chart's right edge) so it never pushes the page sideways
       const last = i === N - 1;
       return {
