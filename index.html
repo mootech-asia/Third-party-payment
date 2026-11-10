@@ -3607,6 +3607,16 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 @keyframes dashFadeA{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes dashFadeB{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes dashHalo{0%{transform:scale(.55);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+/* light wave: transform-only so the compositor runs it without relayout/repaint (the SMIL version cost ~20% CPU on phones) */
+/* the clip box keeps the travelling window from widening the page when it sits past the right edge */
+.dash-wave-clip{position:absolute;inset:-6px 0;overflow:hidden;pointer-events:none}
+.dash-wave{position:absolute;top:6px;bottom:6px;left:0;width:36%;overflow:hidden;pointer-events:none;will-change:transform;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 55%,transparent);mask-image:linear-gradient(90deg,transparent,#000 55%,transparent);
+  transform:translateX(-100%);animation:dashWaveWin 3.6s linear 1.2s infinite}
+.dash-wave-lines{position:absolute;top:0;left:0;height:100%;width:277.78%;overflow:visible;will-change:transform;
+  transform:translateX(36%);animation:dashWaveIn 3.6s linear 1.2s infinite}
+@keyframes dashWaveWin{0%{transform:translateX(-100%)}72%,100%{transform:translateX(277.78%)}}
+@keyframes dashWaveIn{0%{transform:translateX(36%)}72%,100%{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.dash-anim{animation:none!important}.dash-deco{display:none}}
 
 /* ============ UI craft — 介面打磨層（依 cms_system ui-craft 規範；只用既有 token） ============ */
@@ -3673,7 +3683,9 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 @media (max-width:1023px){
   .rwd-aside{position:fixed!important;top:0;bottom:0;left:0;z-index:85!important;margin-right:0!important;width:260px!important;max-width:84vw;transform:translateX(-100%);transition:transform .22s ease!important}
   :root[data-nav-open] .rwd-aside{transform:none;box-shadow:0 0 40px rgba(0,0,0,.6)}
-  :root[data-nav-open] .rwd-backdrop{display:block;position:fixed;inset:0;z-index:84;background:rgba(var(--ink-rgb),.7);backdrop-filter:blur(2px)}
+  :root[data-nav-open] .rwd-backdrop{display:block;position:fixed;inset:0;z-index:84;background:rgba(var(--ink-rgb),.78)}
+  /* full-screen backdrop blur is re-rasterised every frame on phones/tablets; the dim overlay alone reads the same */
+  .rwd-root [style*="backdrop-filter"]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
   .rwd-collapse{display:none!important}
   .rwd-burger{display:flex!important}
   .rwd-header{padding:0 16px!important;gap:8px!important}
@@ -7160,21 +7172,21 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
                 </sc-for>
               </svg>
               <svg class="dash-anim" viewBox="0 0 1000 276" preserveAspectRatio="none" style="{{ dashLinesSvg }}">
-                <defs>
-                  <linearGradient id="dashWave" gradientUnits="userSpaceOnUse" x1="-360" y1="0" x2="0" y2="0">
-                    <stop offset="0" stop-color="#fff" stop-opacity="0"></stop>
-                    <stop offset=".55" stop-color="#fff" stop-opacity=".95"></stop>
-                    <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
-                    <animateTransform attributeName="gradientTransform" type="translate" values="0 0;1360 0;1360 0" keyTimes="0;.72;1" dur="3.6s" begin="1.2s" repeatCount="indefinite"></animateTransform>
-                  </linearGradient>
-                </defs>
                 <sc-for list="{{ dashLines }}" as="ln" hint-placeholder-count="3">
                   <polyline points="{{ ln.points }}" style="{{ ln.glowStyle }}"></polyline>
                   <polyline points="{{ ln.points }}" style="{{ ln.lineStyle }}"></polyline>
-                  <polyline class="dash-deco" points="{{ ln.points }}" style="{{ ln.waveGlow }}"></polyline>
-                  <polyline class="dash-deco" points="{{ ln.points }}" style="{{ ln.waveLine }}"></polyline>
                 </sc-for>
               </svg>
+              <div class="dash-wave-clip dash-deco" aria-hidden="true">
+                <div class="dash-wave">
+                  <svg class="dash-wave-lines" viewBox="0 0 1000 276" preserveAspectRatio="none">
+                    <sc-for list="{{ dashLines }}" as="ln" hint-placeholder-count="3">
+                      <polyline points="{{ ln.points }}" style="{{ ln.waveGlow }}"></polyline>
+                      <polyline points="{{ ln.points }}" style="{{ ln.waveLine }}"></polyline>
+                    </sc-for>
+                  </svg>
+                </div>
+              </div>
               <sc-for list="{{ dashEnds }}" as="ed" hint-placeholder-count="3">
                 <span class="dash-anim dash-deco" style="{{ ed.ringStyle }}"></span>
                 <span class="dash-anim" style="{{ ed.dotStyle }}"></span>
@@ -9458,7 +9470,7 @@ class Component extends DCLogic {
       dashMetric: '激活', dashRange: '7天', dashAnim: 0,
       platTab: 'user', platSetTab: 'basic', vendorTab: 'vendor', betNav: 'bet', betCat: '捕魚',
       paysetTab: 'dep', depEdit: false, wdEdit: false,
-      navCollapsed: false, navPeek: false, openGroups: [], mobileNav: false,
+      navCollapsed: false, navPeek: false, openGroups: [],
       skin: readPref('skin', 'cyber', SKIN_KEYS),
       hdrOpen: '', hdrLang: LANG_DEFAULT, hdrTz: 'GMT+8', hdrQuery: '',
       hdrAlerts: [
@@ -9845,11 +9857,13 @@ class Component extends DCLogic {
   // Below the tablet breakpoint the sidebar is an off-canvas drawer; CSS keys off this root attribute.
   setMobileNav(open) {
     if (typeof document !== 'undefined') document.documentElement.toggleAttribute('data-nav-open', open);
-    this.setState(open ? { mobileNav: true, navCollapsed: false } : { mobileNav: false });
+    // open/close is pure CSS (root attribute): no re-render unless the rail was collapsed and must expand first
+    this._mobileNav = open;
+    if (open && this.state.navCollapsed) this.setState({ navCollapsed: false });
   }
 
   goto(screen, group) {
-    if (this.state.mobileNav) this.setMobileNav(false);
+    if (this._mobileNav) this.setMobileNav(false);
     this.setState((prev) => ({
       screen,
       openGroups: group && !prev.openGroups.includes(group) ? [...prev.openGroups, group] : prev.openGroups,
@@ -10082,9 +10096,9 @@ class Component extends DCLogic {
         points,
         glowStyle: { fill: 'none', stroke: sr.color, strokeWidth: 6, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke', opacity: 0.14 },
         lineStyle: { fill: 'none', stroke: sr.color, strokeWidth: 2, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
-        // a soft band of light (gradient #dashWave, moved by SMIL) sweeps left to right over every line
-        waveGlow: { fill: 'none', stroke: 'url(#dashWave)', strokeWidth: 8, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke', opacity: 0.35 },
-        waveLine: { fill: 'none', stroke: 'url(#dashWave)', strokeWidth: 2.4, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' },
+        // white copies of the line shown only inside the moving .dash-wave window (see CSS)
+        waveGlow: { fill: 'none', stroke: '#fff', strokeWidth: 8, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke', opacity: 0.3 },
+        waveLine: { fill: 'none', stroke: '#fff', strokeWidth: 2.4, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke', opacity: 0.9 },
       };
     });
     const dashEnds = DASH_SERIES.map((sr, si) => {
