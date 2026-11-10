@@ -3651,6 +3651,42 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 :root:not([data-skin]) .rwd-root [style="display: flex; align-items: center; gap: 0px;"]>[style*="cursor: pointer"]:first-child{border-radius:10px 0 0 10px}
 :root:not([data-skin]) .rwd-root [style="display: flex; align-items: center; gap: 0px;"]>[style*="cursor: pointer"]:last-child{border-radius:0 10px 10px 0}
 
+/* ============ Entrance motion — 介面進場動效 ============
+   Screens and in-page tabs re-mount their content (typing, menus and sidebar toggles do not), so these
+   play exactly when new content appears. Transform/opacity only, custom ease-out, staggered, < 0.45s. */
+@keyframes inRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes inRow{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes inSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@keyframes inLine{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+.rwd-main [data-screen-label] .sk-panel,.rwd-main [data-screen-label] [style*="var(--clip-box12)"]{animation:inRise .44s cubic-bezier(.23,1,.32,1) backwards}
+.rwd-main [data-screen-label] .sk-panel:nth-child(2),.rwd-main [data-screen-label] [style*="var(--clip-box12)"]:nth-child(2){animation-delay:.05s}
+.rwd-main [data-screen-label] .sk-panel:nth-child(3),.rwd-main [data-screen-label] [style*="var(--clip-box12)"]:nth-child(3){animation-delay:.1s}
+.rwd-main [data-screen-label] .sk-panel:nth-child(4),.rwd-main [data-screen-label] [style*="var(--clip-box12)"]:nth-child(4){animation-delay:.15s}
+.rwd-main [data-screen-label] .sk-panel:nth-child(5),.rwd-main [data-screen-label] [style*="var(--clip-box12)"]:nth-child(5){animation-delay:.2s}
+.rwd-main [data-screen-label] .sk-panel:nth-child(n+6),.rwd-main [data-screen-label] [style*="var(--clip-box12)"]:nth-child(n+6){animation-delay:.25s}
+/* table rows print in one after another */
+.rwd-main .sk-tbody>div{animation:inRow .32s cubic-bezier(.23,1,.32,1) backwards;animation-delay:.12s}
+.rwd-main .sk-tbody>div:nth-child(2){animation-delay:.145s}.rwd-main .sk-tbody>div:nth-child(3){animation-delay:.17s}
+.rwd-main .sk-tbody>div:nth-child(4){animation-delay:.195s}.rwd-main .sk-tbody>div:nth-child(5){animation-delay:.22s}
+.rwd-main .sk-tbody>div:nth-child(6){animation-delay:.245s}.rwd-main .sk-tbody>div:nth-child(7){animation-delay:.27s}
+.rwd-main .sk-tbody>div:nth-child(8){animation-delay:.295s}.rwd-main .sk-tbody>div:nth-child(9){animation-delay:.32s}
+.rwd-main .sk-tbody>div:nth-child(n+10){animation-delay:.345s}
+/* "power-on" light line across the top of panels and KPI cards (Cyber) */
+:root:not([data-skin]) .rwd-main .sk-accentline{transform-origin:center;animation:inLine .7s cubic-bezier(.23,1,.32,1) .18s backwards}
+:root:not([data-skin]) .rwd-main [style*="var(--clip-box12)"]::after{transform-origin:center;animation:inLine .7s cubic-bezier(.23,1,.32,1) .25s backwards}
+/* sidebar sub-items slide in when a group opens */
+.rwd-aside nav>div:not([style*="height"])>div{animation:inSlide .24s cubic-bezier(.23,1,.32,1) backwards}
+.rwd-aside nav>div:not([style*="height"])>div:nth-child(2){animation-delay:.03s}.rwd-aside nav>div:not([style*="height"])>div:nth-child(3){animation-delay:.06s}
+.rwd-aside nav>div:not([style*="height"])>div:nth-child(4){animation-delay:.09s}.rwd-aside nav>div:not([style*="height"])>div:nth-child(n+5){animation-delay:.12s}
+/* KPI cards lift slightly and brighten their edge on hover */
+.rwd-main [style*="var(--clip-box12)"]{transition:transform .2s cubic-bezier(.23,1,.32,1),border-color .2s ease-out,box-shadow .2s ease-out}
+@media (hover:hover){.rwd-main [style*="var(--clip-box12)"]:hover{transform:translateY(-2px);border-color:rgba(var(--acc1-rgb),.42)!important}}
+@media (prefers-reduced-motion:reduce){
+  .rwd-main [data-screen-label] .sk-panel,.rwd-main [data-screen-label] [style*="var(--clip-box12)"],.rwd-main .sk-tbody>div,.rwd-aside nav>div>div{animation:uiFade .15s linear both!important}
+  .rwd-main .sk-accentline,.rwd-main [style*="var(--clip-box12)"]::after{animation:none!important}
+  .rwd-main [style*="var(--clip-box12)"]:hover{transform:none}
+}
+
 /* ============ UI craft — 介面打磨層（依 cms_system ui-craft 規範；只用既有 token） ============ */
 /* decorative "// LABEL" tags read as fake code comments; Aurora/Verdant already hid them */
 .sk-mono{display:none!important}
@@ -3849,7 +3885,7 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
     </div>
   </aside>
 
-  <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+  <div class="rwd-main" style="flex:1;display:flex;flex-direction:column;min-width:0">
     <header class="rwd-header" style="height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 28px;border-bottom:1px solid var(--div);background:rgba(var(--nav-rgb),.8);position:relative;z-index:30">
       <div onclick="{{ openMobileNav }}" class="rwd-burger" aria-label="選單" style="width:36px;height:36px;flex-shrink:0;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--bd2);color:var(--tx2);margin-right:auto;clip-path:var(--clip-cut6);border-radius:var(--rad-cut6)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div>
       <div class="rwd-search" style="display:flex">
