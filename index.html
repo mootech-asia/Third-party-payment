@@ -3641,11 +3641,15 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 :root:not([data-skin]) .rwd-header [style*="height: 36px"]:not(input){border-radius:10px}
 :root:not([data-skin]) .rwd-header [style*="top: calc(100% + 8px)"]{border-radius:12px}
 
-/* 開分 / 洗分 had hard-coded pink and green; in Cyber they join the button system: 開分 primary, 洗分 secondary */
-:root:not([data-skin]) .rwd-root .pp-credit{background:linear-gradient(135deg,var(--acc1),var(--acc3))!important;color:var(--ink)!important;box-shadow:0 0 0 1px rgba(var(--acc1-rgb),.4),0 8px 22px rgba(0,180,255,.28)!important}
-:root:not([data-skin]) .rwd-root .pp-credit:hover{filter:brightness(1.08)}
-:root:not([data-skin]) .rwd-root .pp-wash{background:rgba(var(--acc1-rgb),.06)!important;border:1px solid rgba(var(--acc1-rgb),.38);color:var(--acc1-lt)!important;box-shadow:none!important}
-:root:not([data-skin]) .rwd-root .pp-wash:hover{background:rgba(var(--acc1-rgb),.12)!important}
+/* 開分 / 洗分 had hard-coded pink and green; in every skin they join that skin's button system:
+   開分 = the skin's primary button, 洗分 = its accent-outline secondary, same shape as the other buttons. */
+.rwd-root .pp-credit,.rwd-root .pp-wash{clip-path:var(--clip-cut8)!important;border-radius:var(--btn-rad)!important}
+.rwd-root .pp-credit{background:linear-gradient(135deg,var(--acc1),var(--acc3,var(--acc1)))!important;color:var(--ink)!important;box-shadow:0 0 0 1px rgba(var(--acc1-rgb),.4),0 8px 22px rgba(var(--acc1-rgb),.25)!important}
+:root[data-skin="aurora"] .rwd-root .pp-credit{background:linear-gradient(90deg,var(--acc2),var(--acc1))!important;color:#fff!important;box-shadow:0 8px 22px rgba(var(--acc2-rgb),.35)!important}
+:root[data-skin="verdant"] .rwd-root .pp-credit{background:var(--acc1)!important;color:var(--ink)!important;box-shadow:0 10px 26px rgba(var(--acc1-rgb),.28)!important}
+.rwd-root .pp-credit:hover{filter:brightness(1.08)}
+.rwd-root .pp-wash{background:rgba(var(--acc1-rgb),.06)!important;border:1px solid rgba(var(--acc1-rgb),.38);color:var(--acc1-lt)!important;box-shadow:none!important}
+.rwd-root .pp-wash:hover{background:rgba(var(--acc1-rgb),.12)!important}
 /* status badges become pills; pagination, range buttons and segmented groups get soft corners */
 :root:not([data-skin]) .rwd-root span[style*="display: inline-flex"][style*="height: 2"][style*="border: 1px solid"]{border-radius:999px}
 :root:not([data-skin]) .rwd-root [style^="min-width: 26px; height: 26px;"]{border-radius:8px}
