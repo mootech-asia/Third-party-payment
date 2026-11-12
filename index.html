@@ -3641,6 +3641,11 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
 :root:not([data-skin]) .rwd-header [style*="height: 36px"]:not(input){border-radius:10px}
 :root:not([data-skin]) .rwd-header [style*="top: calc(100% + 8px)"]{border-radius:12px}
 
+/* 開分 / 洗分 had hard-coded pink and green; in Cyber they join the button system: 開分 primary, 洗分 secondary */
+:root:not([data-skin]) .rwd-root .pp-credit{background:linear-gradient(135deg,var(--acc1),var(--acc3))!important;color:var(--ink)!important;box-shadow:0 0 0 1px rgba(var(--acc1-rgb),.4),0 8px 22px rgba(0,180,255,.28)!important}
+:root:not([data-skin]) .rwd-root .pp-credit:hover{filter:brightness(1.08)}
+:root:not([data-skin]) .rwd-root .pp-wash{background:rgba(var(--acc1-rgb),.06)!important;border:1px solid rgba(var(--acc1-rgb),.38);color:var(--acc1-lt)!important;box-shadow:none!important}
+:root:not([data-skin]) .rwd-root .pp-wash:hover{background:rgba(var(--acc1-rgb),.12)!important}
 /* status badges become pills; pagination, range buttons and segmented groups get soft corners */
 :root:not([data-skin]) .rwd-root span[style*="display: inline-flex"][style*="height: 2"][style*="border: 1px solid"]{border-radius:999px}
 :root:not([data-skin]) .rwd-root [style^="min-width: 26px; height: 26px;"]{border-radius:8px}
@@ -7030,8 +7035,8 @@ input:focus,select:focus{outline:1px solid var(--acc1);outline-offset:-1px;box-s
             </div>
             <div class="sk-panel" style="background:linear-gradient(180deg,var(--pan1),var(--pan2));border:1px solid var(--bd);clip-path:var(--clip-box16);border-radius:var(--rad-box16);overflow:hidden">
               <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:16px 22px 10px">
-                <div onclick="{{ ppAddPoints }}" style="height:34px;padding:0 22px;background:#FF4D9D;color:#0A0512;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;clip-path:var(--clip-cut8);border-radius:var(--rad-cut8);box-shadow:0 0 16px rgba(255,77,157,.35)" style-hover="background:#FF7AB8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>開分</div>
-                <div onclick="{{ ppWashPoints }}" style="height:34px;padding:0 22px;background:#00D9B2;color:#04120E;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;clip-path:var(--clip-cut8);border-radius:var(--rad-cut8);box-shadow:0 0 16px rgba(0,217,178,.3)" style-hover="background:#38E8C9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>洗分</div>
+                <div onclick="{{ ppAddPoints }}" class="pp-credit" style="height:34px;padding:0 22px;background:#FF4D9D;color:#0A0512;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;clip-path:var(--clip-cut8);border-radius:var(--rad-cut8);box-shadow:0 0 16px rgba(255,77,157,.35)" style-hover="background:#FF7AB8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>開分</div>
+                <div onclick="{{ ppWashPoints }}" class="pp-wash" style="height:34px;padding:0 22px;background:#00D9B2;color:#04120E;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;clip-path:var(--clip-cut8);border-radius:var(--rad-cut8);box-shadow:0 0 16px rgba(0,217,178,.3)" style-hover="background:#38E8C9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>洗分</div>
               </div>
             <div style="overflow-x:auto">
               <div class="sk-table" style="display:table;width:100%;border-collapse:collapse;font-size:13px">
